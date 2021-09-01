@@ -1,0 +1,7 @@
+ServerPort: :10086
+MongoDB: 
+  Host: 
+  DataBase: 
+Redis:
+  Host: 
+  Passwd: 
