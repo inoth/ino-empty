@@ -1,9 +1,9 @@
 package router
 
 import (
-	"ino-empty/config"
-	ex "ino-empty/exception"
-	mid "ino-empty/middleware"
+	"<project-name>/config"
+	ex "<project-name>/exception"
+	mid "<project-name>/src/middleware"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

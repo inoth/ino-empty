@@ -1,4 +1,4 @@
-module ino-empty
+module <project-name>
 
 go 1.15
 

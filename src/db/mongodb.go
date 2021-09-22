@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"ino-empty/config"
+	"<project-name>/config"
 
 	"os"
 

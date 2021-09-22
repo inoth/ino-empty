@@ -1,6 +1,6 @@
 package main
 
-import "ino-empty/router"
+import "<project-name>/src/router"
 
 func main() {
 	router.ServerStar()

@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"fmt"
-	"ino-empty/res"
+	"<project-name>/res"
 
 	"time"
 

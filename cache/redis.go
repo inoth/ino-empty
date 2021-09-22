@@ -1,7 +1,7 @@
 package cache
 
 import (
-	"ino-empty/config"
+	"<project-name>/config"
 
 	"github.com/gomodule/redigo/redis"
 	"github.com/pkg/errors"

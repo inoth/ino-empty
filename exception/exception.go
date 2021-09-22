@@ -1,7 +1,7 @@
 package exception
 
 import (
-	"ino-empty/res"
+	"<project-name>/res"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
