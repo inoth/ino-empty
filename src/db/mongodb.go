@@ -24,7 +24,7 @@ type MongoDBConnect struct {
 	Mogo *mongo.Client
 }
 
-func init() {
+func Init() {
 	DB = &MongoDBConnect{
 		Mogo: setConnect(),
 	}
@@ -128,6 +128,20 @@ func (m *mgo) FindMany(skip, limit int64, filter, sort interface{}) ([]bson.M, b
 		r = append(r, tmp)
 	}
 	return r, true
+}
+
+func (m *mgo) Count(filter interface{}) int {
+	client := DB.Mogo
+	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	if err != nil {
+		log.Error(err)
+		return 0
+	}
+	c, err := col.CountDocuments(context.TODO(), filter)
+	if err != nil {
+		return 0
+	}
+	return int(c)
 }
 
 func (m *mgo) UpdateOne(filter, update interface{}) bool {

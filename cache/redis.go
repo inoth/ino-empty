@@ -9,7 +9,7 @@ import (
 
 var pool *redis.Pool
 
-func init() {
+func Init() {
 	pool = &redis.Pool{
 		MaxIdle:     16,
 		MaxActive:   0,

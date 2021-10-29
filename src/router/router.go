@@ -17,7 +17,6 @@ func ServerStar() {
 	r.Use(ex.ExceptionHandle)
 
 	r.MaxMultipartMemory = 10 << 20
-
 	docs.SwaggerInfo.BasePath = ""
 	ginSwagger.WrapHandler(swaggerfiles.Handler,
 		ginSwagger.URL("http://localhost:8080/swagger/doc.json"),
