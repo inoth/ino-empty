@@ -35,6 +35,12 @@ func GetConn() redis.Conn {
 	return conn
 }
 
+func Do(key string, args ...interface{}) (interface{}, error) {
+	conn := GetConn()
+	defer conn.Close()
+	return conn.Do(key, args...)
+}
+
 func Get(key string) (string, error) {
 	conn := GetConn()
 	defer conn.Close()
@@ -130,7 +136,7 @@ func RPop(key string) (string, error) {
 }
 
 //------------------SET----------------------
-func SAdd(key string, val ...string) error {
+func SAdd(key string, val string) error {
 	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("SADD", key, val)
@@ -174,7 +180,7 @@ func SMembers(key string) ([]string, error) {
 }
 
 // 删除一个成员
-func SRem(key, member string) error {
+func SRem(key string, member string) error {
 	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("SREM", key, member)
@@ -185,20 +191,33 @@ func SRem(key, member string) error {
 }
 
 //------------------HASH----------------------
-func HMSet(key string, val interface{}) error {
+// 同时将多个 field-value (域-值)对设置到哈希表 key 中。
+func HMSet(key string, val interface{}, expire ...int) error {
 	conn := GetConn()
 	defer conn.Close()
-	_, err := conn.Do("HMSET", redis.Args{}.Add(key).AddFlat(&val)...)
+	// _, err := conn.Do("HMSET", redis.Args{}.Add(key).AddFlat(val))
+	conn.Send("MULTI")
+	err := conn.Send("HMSET", redis.Args{}.Add(key).AddFlat(val)...)
+	if len(expire) > 0 {
+		conn.Send("PEXPIRE")
+	}
+	_, err = conn.Do("EXEC")
 	if err != nil {
 		return errors.Wrap(err, "")
 	}
+	// conn.Flush()
+	// if err != nil {
+	// 	return errors.Wrap(err, "")
+	// }
+	// _, err = conn.Receive()
 	return nil
 }
 
-func HSet(key string, val map[string]interface{}) error {
+// 将哈希表 key 中的字段 field 的值设为 value 。
+func HSet(key, field string, val interface{}) error {
 	conn := GetConn()
 	defer conn.Close()
-	_, err := conn.Do("HSET", redis.Args{}.Add(key).AddFlat(&val)...)
+	_, err := conn.Do("HSET", key, field, val)
 	if err != nil {
 		return errors.Wrap(err, "")
 	}
@@ -208,9 +227,19 @@ func HSet(key string, val map[string]interface{}) error {
 func HGetAll(key string) (map[string]string, error) {
 	conn := GetConn()
 	defer conn.Close()
-	r, err := redis.StringMap(conn.Do(key))
+	r, err := redis.StringMap(conn.Do("HGETALL", key))
 	if err != nil {
 		return nil, errors.Wrap(err, "")
 	}
 	return r, nil
+}
+
+func HGet(key, field string) string {
+	conn := GetConn()
+	defer conn.Close()
+	r, err := redis.String(conn.Do("HGET", key, field))
+	if err != nil {
+		return ""
+	}
+	return r
 }
