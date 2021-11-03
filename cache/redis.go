@@ -136,7 +136,7 @@ func RPop(key string) (string, error) {
 }
 
 //------------------SET----------------------
-func SAdd(key string, val string) error {
+func SAdd(key, val string) error {
 	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("SADD", key, val)
@@ -180,7 +180,7 @@ func SMembers(key string) ([]string, error) {
 }
 
 // 删除一个成员
-func SRem(key string, member string) error {
+func SRem(key, member string) error {
 	conn := GetConn()
 	defer conn.Close()
 	_, err := conn.Do("SREM", key, member)
