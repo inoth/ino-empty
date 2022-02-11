@@ -1,0 +1,15 @@
+ServerPort: :10086
+ServerName: defaultProject
+Redis:
+  Host:
+  Passwd:
+
+MongoDB:
+  Host:
+  DataBase:
+
+Mysql:
+  Host:
+
+Consul:
+  Host:

@@ -1,34 +1,11 @@
 package router
 
-import (
-	"<project-name>/config"
-	ex "<project-name>/exception"
-	mid "<project-name>/src/middleware"
-	"net/http"
+import "github.com/gin-gonic/gin"
 
-	"github.com/gin-gonic/gin"
-	swaggerfiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	"<project-name>/docs"
-)
+type ProjectRouter struct{}
 
-func ServerStar() {
-	r := gin.New()
-	r.Use(ex.ExceptionHandle)
-
-	r.MaxMultipartMemory = 10 << 20
-	docs.SwaggerInfo.BasePath = ""
-	ginSwagger.WrapHandler(swaggerfiles.Handler,
-		ginSwagger.URL("http://localhost:8080/swagger/doc.json"),
-		ginSwagger.DefaultModelsExpandDepth(-1))
-
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
-
-	r.GET("/health", func(c *gin.Context) {
-		c.String(http.StatusOK, "ok")
+func (ProjectRouter) Load(g *gin.Engine) {
+	g.GET("/", func(c *gin.Context) {
+		c.JSON(200, "hello world")
 	})
-
-	r.Group("api", mid.AuthMiddleware)
-
-	r.Run(config.Instance().ServerPort)
 }

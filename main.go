@@ -1,13 +1,24 @@
 package main
 
 import (
-	"<project-name>/cache"
-	"<project-name>/src/db"
-	"<project-name>/src/router"
+	"defaultProject/cache"
+	"defaultProject/config"
+	"defaultProject/db"
+	"defaultProject/global"
+	"defaultProject/httpsvc"
+	"defaultProject/logger"
+	"defaultProject/queue"
+	"defaultProject/src/router"
 )
 
 func main() {
-	cache.Init()
-	db.Init()
-	router.ServerStar()
+	global.Register(
+		&config.ViperConfig{},
+		&logger.LogrusConfig{},
+		&cache.RedisCache{},
+		&db.MysqlConnect{},
+		&db.MongoConnect{},
+		&queue.NsqQueue{},
+		httpsvc.NewGinConfig().SetRouter(&router.ProjectRouter{}),
+	).Init()
 }

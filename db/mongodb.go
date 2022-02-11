@@ -2,43 +2,33 @@ package db
 
 import (
 	"context"
-	"<project-name>/config"
+	"defaultProject/config"
+	"time"
 
-	"os"
-
+	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-
-	log "github.com/sirupsen/logrus"
 )
 
-const (
-	C_DATABASE = ""
-)
+var mgConnect *MongoConnect
 
-var (
-	DB *MongoDBConnect
-)
-
-type MongoDBConnect struct {
-	Mogo *mongo.Client
+type MongoConnect struct {
+	mongo *mongo.Client
 }
 
-func Init() {
-	DB = &MongoDBConnect{
-		Mogo: setConnect(),
-	}
-}
-
-func setConnect() *mongo.Client {
+func (m *MongoConnect) Init() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// 连接池
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Instance().MongoDB.Host).SetMaxPoolSize(20))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.Cfg.GetString("Mongo.Host")).SetMaxPoolSize(20))
 	if err != nil {
-		log.Error(err)
+		return err
 	}
-	return client
+	m.mongo = client
+	mgConnect = m
+	return nil
 }
 
 type mgo struct {
@@ -53,56 +43,54 @@ func NewMgo(database, collection string) *mgo {
 	}
 }
 
-func (m *mgo) InsertOne(value interface{}) bool {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+func (m *mgo) GetCollection() (*mongo.Collection, error) {
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
+		return nil, errors.Wrap(err, "")
+	}
+	return col, nil
+}
+
+func (m *mgo) InsertOne(value interface{}) bool {
+
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
+	if err != nil {
 		return false
 	}
 	_, err = col.InsertOne(context.TODO(), value)
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	return true
 }
 
 func (m *mgo) InsertMany(values []interface{}) bool {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	_, err = col.InsertMany(context.TODO(), values)
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	return true
 }
 
 func (m *mgo) FindOne(filter interface{}, res interface{}) bool {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	err = col.FindOne(context.TODO(), filter).Decode(res)
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	return true
 }
 
 func (m *mgo) FindMany(skip, limit int64, filter, sort interface{}) ([]bson.M, bool) {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
 		return nil, false
 	}
 	var findoptions *options.FindOptions
@@ -114,7 +102,6 @@ func (m *mgo) FindMany(skip, limit int64, filter, sort interface{}) ([]bson.M, b
 	}
 	cur, err := col.Find(context.Background(), filter, findoptions)
 	if err != nil {
-		log.Error(err)
 		return nil, false
 	}
 	r := make([]bson.M, 0)
@@ -123,7 +110,30 @@ func (m *mgo) FindMany(skip, limit int64, filter, sort interface{}) ([]bson.M, b
 	for cur.Next(ctx) {
 		var tmp bson.M
 		if err = cur.Decode(&tmp); err != nil {
-			log.Fatal(err)
+			logrus.Fatal(err)
+		}
+		r = append(r, tmp)
+	}
+	return r, true
+}
+
+func (m *mgo) Aggregate(pipeline interface{}) ([]map[string]interface{}, bool) {
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
+	if err != nil {
+		return nil, false
+	}
+	opts := options.Aggregate()
+	cur, err := col.Aggregate(context.Background(), pipeline, opts)
+	if err != nil {
+		return nil, false
+	}
+	ctx := context.TODO()
+	r := make([]map[string]interface{}, 0)
+	defer cur.Close(ctx)
+	for cur.Next(ctx) {
+		var tmp map[string]interface{}
+		if err = cur.Decode(&tmp); err != nil {
+			logrus.Fatal(err)
 		}
 		r = append(r, tmp)
 	}
@@ -131,10 +141,8 @@ func (m *mgo) FindMany(skip, limit int64, filter, sort interface{}) ([]bson.M, b
 }
 
 func (m *mgo) Count(filter interface{}) int {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
 		return 0
 	}
 	c, err := col.CountDocuments(context.TODO(), filter)
@@ -145,15 +153,12 @@ func (m *mgo) Count(filter interface{}) int {
 }
 
 func (m *mgo) UpdateOne(filter, update interface{}) bool {
-	client := DB.Mogo
-	col, err := client.Database(m.database).Collection(m.collection).Clone()
+	col, err := mgConnect.mongo.Database(m.database).Collection(m.collection).Clone()
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	_, err = col.UpdateOne(context.TODO(), filter, update)
 	if err != nil {
-		log.Error(err)
 		return false
 	}
 	return true

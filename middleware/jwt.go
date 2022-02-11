@@ -1,13 +1,12 @@
 package middleware
 
 import (
+	"defaultProject/res"
 	"fmt"
-	"<project-name>/res"
-
 	"time"
 
-	"github.com/golang-jwt/jwt/v4"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 )
@@ -15,19 +14,23 @@ import (
 const SIGNKEY = "BA5ktbKaV47uOcQpnuUT76GvBRYpMdHX"
 
 type CustomerInfo struct {
-	Name string
 	Uid  string
+	Name string
 }
 type CustomClaims struct {
 	*jwt.StandardClaims
 	*CustomerInfo
 }
 
-func CreateToken(uid string, name string) (string, error) {
+func CreateToken(uid string, name string, expire ...int64) (string, error) {
 	key := []byte(SIGNKEY)
+	expiresAt := time.Now().Add(time.Hour * 24).Unix()
+	if len(expire) > 0 {
+		expiresAt = expire[0]
+	}
 	c := CustomClaims{
 		&jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24).Unix(),
+			ExpiresAt: expiresAt,
 			Issuer:    name,
 		},
 		&CustomerInfo{
@@ -57,25 +60,28 @@ func ParseToken(tokenStr string) (*CustomerInfo, error) {
 	}
 }
 
-func AuthMiddleware(c *gin.Context) {
-	var token string
-	token = c.Request.Header.Get("Authorization")
-	if token == "" {
-		token, _ = c.Cookie("Authorization")
+func AuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var token string
+		token = c.GetHeader("Authorization")
+		if token == "" {
+			token, _ = c.Cookie("Authorization")
+		}
+		if token == "" {
+			c.JSON(401, res.Unauthrized("Unauthrized."))
+			c.Abort()
+			return
+		}
+		user, err := ParseToken(token)
+		if err != nil {
+			logrus.Errorf("jwt解析失败：%v", err)
+			logrus.Errorf("无效token: %v", token)
+			c.JSON(401, res.Unauthrized("Unauthrized."))
+			c.Abort()
+			return
+		}
+		c.Set("USER_ID", user.Uid)
+		c.Set("USER_NAME", user.Name)
+		c.Next()
 	}
-	if token == "" {
-		c.JSON(401, res.Unauthrized("Unauthrized."))
-		c.Abort()
-		return
-	}
-	user, err := ParseToken(token)
-	if err != nil {
-		logrus.Warnf("jwt解析失败：%v", err)
-		c.JSON(401, res.Unauthrized("Unauthrized."))
-		c.Abort()
-		return
-	}
-	c.Request.Header.Add("USER_ID", user.Uid)
-	c.Request.Header.Add("USER_NAME", user.Name)
-	c.Next()
 }
