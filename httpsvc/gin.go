@@ -3,6 +3,9 @@ package httpsvc
 import (
 	"defaultProject/config"
 	"defaultProject/middleware"
+	"errors"
+	"fmt"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
@@ -25,7 +28,8 @@ func NewGinConfig() *GinConfig {
 	g.ginEngine.Use(
 		middleware.GinGlobalException(),
 		middleware.Cors(),
-		middleware.AuthMiddleware())
+		//middleware.AuthMiddleware(),
+	)
 
 	g.ginEngine.MaxMultipartMemory = 10 << 20
 	// docs.SwaggerInfo.BasePath = ""
@@ -38,15 +42,17 @@ func NewGinConfig() *GinConfig {
 	return g
 }
 
-func (g *GinConfig) SetRouter(router GinRouter) *GinConfig {
-	router.Load(g.ginEngine)
+func (g *GinConfig) SetRouter(routers ...GinRouter) *GinConfig {
+	if len(routers) <= 0 {
+		fmt.Errorf("%v", errors.New("No router have been loaded yet."))
+		os.Exit(1)
+	}
+	for _, router := range routers {
+		router.Load(g.ginEngine)
+	}
 	return g
 }
 
-func (g *GinConfig) Init() error {
-	return g.run()
-}
-
-func (g *GinConfig) run() error {
+func (g *GinConfig) ServeStart() error {
 	return g.ginEngine.Run(config.Cfg.GetString("ServerPort"))
 }

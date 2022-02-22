@@ -14,6 +14,9 @@ var (
 type IRegister interface {
 	Init() error
 }
+type IServeStart interface {
+	ServeStart() error
+}
 
 type GlobalRegister struct {
 	servers []IRegister
@@ -28,7 +31,6 @@ type GlobalRegister struct {
 
 func Register(models ...IRegister) *GlobalRegister {
 	if len(models) <= 0 {
-		// panic(errors.New("No services have been loaded yet."))
 		fmt.Errorf("%v", errors.New("No services have been loaded yet."))
 		os.Exit(1)
 	}
@@ -40,15 +42,20 @@ func Register(models ...IRegister) *GlobalRegister {
 	return model
 }
 
-func (g *GlobalRegister) Init() {
+func (g *GlobalRegister) Init() *GlobalRegister {
 	for _, svc := range g.servers {
 		must(svc.Init())
 	}
+	return g
+}
+
+func (g *GlobalRegister) ServeStart(serve IServeStart) error {
+	return serve.ServeStart()
 }
 
 func must(err error) {
 	if err != nil {
-		fmt.Errorf("%v", errors.New("No services have been loaded yet."))
+		fmt.Errorf("%v", err)
 		os.Exit(1)
 	}
 }

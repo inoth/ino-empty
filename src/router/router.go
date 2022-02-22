@@ -6,6 +6,6 @@ type ProjectRouter struct{}
 
 func (ProjectRouter) Load(g *gin.Engine) {
 	g.GET("/", func(c *gin.Context) {
-		c.JSON(200, "hello world")
+		c.String(200, "hello world")
 	})
 }

@@ -1,15 +1,22 @@
 package middleware
 
-import "github.com/gin-gonic/gin"
+import (
+	"fmt"
+
+	"github.com/gin-gonic/gin"
+)
 
 //type GinGlobalException struct {}
 
 func GinGlobalException() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
-			if err := recover().(error); err != nil {
+			if err := recover(); err != nil {
+				switch e := err.(type) {
+				default:
+					c.JSON(500, gin.H{"code": 500, "msg": fmt.Sprintf("%v", e)})
+				}
 				c.Abort()
-				c.JSON(500, gin.H{"code": 500, "msg": err.Error()})
 			}
 		}()
 		c.Next()
