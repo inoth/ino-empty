@@ -49,7 +49,7 @@ func (g *GlobalRegister) Init() *GlobalRegister {
 	return g
 }
 
-func (g *GlobalRegister) ServeStart(serve IServeStart) error {
+func (g *GlobalRegister) Run(serve IServeStart) error {
 	return serve.ServeStart()
 }
 

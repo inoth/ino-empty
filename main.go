@@ -16,5 +16,5 @@ func main() {
 		// &db.MysqlConnect{},
 		// &db.MongoConnect{},
 		// &queue.NsqQueue{},
-	).Init().ServeStart(httpsvc.NewGinConfig().SetRouter(&router.ProjectRouter{}, &router.Project2Router{}))
+	).Init().Run(httpsvc.NewGinConfig().SetRouter(&router.ProjectRouter{}, &router.Project2Router{}))
 }
