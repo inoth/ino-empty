@@ -29,6 +29,7 @@ type GlobalRegister struct {
 // 	return model
 // }
 
+// 注册组件
 func Register(models ...IRegister) *GlobalRegister {
 	if len(models) <= 0 {
 		fmt.Errorf("%v", errors.New("No services have been loaded yet."))
@@ -42,6 +43,7 @@ func Register(models ...IRegister) *GlobalRegister {
 	return model
 }
 
+// 初始化组件模块
 func (g *GlobalRegister) Init() *GlobalRegister {
 	for _, svc := range g.servers {
 		must(svc.Init())
@@ -49,6 +51,20 @@ func (g *GlobalRegister) Init() *GlobalRegister {
 	return g
 }
 
+// 运行子服务，比如性能分析，或者websocket之类的
+func (g *GlobalRegister) SubServe(serve ...IServeStart) *GlobalRegister {
+	for _, subSvc := range serve {
+		go func(svc IServeStart) {
+			defer func() {
+				// TODO:协程内单独的异常捕获
+			}()
+			svc.ServeStart()
+		}(subSvc)
+	}
+	return g
+}
+
+// 运行服务
 func (g *GlobalRegister) Run(serve IServeStart) error {
 	return serve.ServeStart()
 }

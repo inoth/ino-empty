@@ -17,12 +17,18 @@ type GinRouter interface {
 }
 
 type GinConfig struct {
+	port      string
 	ginEngine *gin.Engine
 }
 
-func NewGinConfig() *GinConfig {
+func NewGinConfig(port ...string) *GinConfig {
 	g := &GinConfig{
 		ginEngine: gin.New(),
+	}
+	if len(port) > 0 {
+		g.port = port[0]
+	} else {
+		g.port = config.Cfg.GetString("ServerPort")
 	}
 
 	g.ginEngine.Use(
@@ -54,5 +60,5 @@ func (g *GinConfig) SetRouter(routers ...GinRouter) *GinConfig {
 }
 
 func (g *GinConfig) ServeStart() error {
-	return g.ginEngine.Run(config.Cfg.GetString("ServerPort"))
+	return g.ginEngine.Run(g.port)
 }
