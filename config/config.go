@@ -8,7 +8,23 @@ import (
 
 var Cfg *viper.Viper
 
-type ViperConfig struct{}
+type ViperConfig struct {
+	defaultValue map[string]interface{}
+}
+
+func (m ViperConfig) SetDefaultValue(defaultValue map[string]interface{}) *ViperConfig {
+	m.defaultValue = make(map[string]interface{})
+	for k, v := range defaultValue {
+		m.defaultValue[k] = v
+	}
+	return &m
+}
+
+func (m *ViperConfig) loadDefaultValue() {
+	for k, v := range m.defaultValue {
+		Cfg.SetDefault(k, v)
+	}
+}
 
 func (m *ViperConfig) Init() error {
 	v := viper.New()
@@ -19,6 +35,7 @@ func (m *ViperConfig) Init() error {
 		return err
 	}
 	Cfg = v
+	m.loadDefaultValue()
 	return nil
 }
 
