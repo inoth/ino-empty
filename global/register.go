@@ -4,11 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"sync"
 )
 
 var (
-// model *GlobalRegister
-// once  sync.Once
+	g_model  *GlobalRegister
+	once     sync.Once
+	initOnce sync.Once
 )
 
 type IRegister interface {
@@ -22,20 +24,20 @@ type GlobalRegister struct {
 	servers []IRegister
 }
 
-// func instance() *GlobalRegister {
-// 	once.Do(func() {
-// 		model = &GlobalRegister{}
-// 	})
-// 	return model
-// }
+func instance() *GlobalRegister {
+	once.Do(func() {
+		g_model = &GlobalRegister{}
+	})
+	return g_model
+}
 
 // 注册组件
 func Register(models ...IRegister) *GlobalRegister {
 	if len(models) <= 0 {
-		fmt.Errorf("%v", errors.New("No services have been loaded yet."))
+		fmt.Printf("%v\n", errors.New("No services have been loaded yet."))
 		os.Exit(1)
 	}
-	model := &GlobalRegister{}
+	model := instance()
 	model.servers = make([]IRegister, len(models))
 	for i, m := range models {
 		model.servers[i] = m
@@ -43,11 +45,13 @@ func Register(models ...IRegister) *GlobalRegister {
 	return model
 }
 
-// 初始化组件模块
+// 根据注册顺序，配置时注意引用优先级，初始化组件模块
 func (g *GlobalRegister) Init() *GlobalRegister {
-	for _, svc := range g.servers {
-		must(svc.Init())
-	}
+	initOnce.Do(func() {
+		for _, svc := range g.servers {
+			must(svc.Init())
+		}
+	})
 	return g
 }
 
@@ -56,9 +60,17 @@ func (g *GlobalRegister) SubServe(serve ...IServeStart) *GlobalRegister {
 	for _, subSvc := range serve {
 		go func(svc IServeStart) {
 			defer func() {
-				// TODO:协程内单独的异常捕获
+				// TODO:协程内单独的异常捕获if exception := recover(); exception != nil {
+				if exception := recover(); exception != nil {
+					if err, ok := exception.(error); ok {
+						fmt.Printf("%v\n", err)
+					} else {
+						panic(exception)
+					}
+					os.Exit(1)
+				}
 			}()
-			svc.ServeStart()
+			must(svc.ServeStart())
 		}(subSvc)
 	}
 	return g
@@ -71,7 +83,7 @@ func (g *GlobalRegister) Run(serve IServeStart) error {
 
 func must(err error) {
 	if err != nil {
-		fmt.Errorf("%v", err)
+		fmt.Printf("%v\n", err)
 		os.Exit(1)
 	}
 }
