@@ -1,9 +1,10 @@
 package logger
 
 import (
-	"defaultProject/config"
-	"defaultProject/logger/hooks"
+	"defaultProject/components/config"
+	"defaultProject/components/logger/hooks"
 	"defaultProject/util"
+
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 )
@@ -24,7 +25,7 @@ func (l *LogrusConfig) Init() error {
 	return nil
 }
 
-func DefualtNsqHook(topicName string,level logrus.Level) logrus.Hook {
+func DefualtNsqHook(topicName string, level logrus.Level) logrus.Hook {
 	cfg := nsq.NewConfig()
 	client, err := nsq.NewProducer(config.Cfg.GetString("Nsq.Host"), cfg)
 	util.Must(err)

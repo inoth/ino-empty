@@ -49,7 +49,7 @@ func CreateToken(uid string, name string, expire ...int64) (string, error) {
 func ParseToken(tokenStr string) (*CustomerInfo, error) {
 	token, err := jwt.ParseWithClaims(tokenStr, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("Unexpected signing method: %v\n", token.Header["alg"])
 		}
 		return []byte(SIGNKEY), nil
 	})
@@ -68,7 +68,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			token, _ = c.Cookie("Authorization")
 		}
 		if token == "" {
-			c.JSON(401, res.Unauthrized("Unauthrized."))
+			res.Unauthrized(c, "Unauthrized.")
 			c.Abort()
 			return
 		}
@@ -76,7 +76,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		if err != nil {
 			logrus.Errorf("jwt解析失败：%v", err)
 			logrus.Errorf("无效token: %v", token)
-			c.JSON(401, res.Unauthrized("Unauthrized."))
+			res.Unauthrized(c, "Unauthrized.")
 			c.Abort()
 			return
 		}

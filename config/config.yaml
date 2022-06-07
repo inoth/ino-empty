@@ -1,15 +1,42 @@
-ServerPort: :10086
+ServerPort: :8888
 ServerName: defaultProject
+
 Redis:
-  Host:
-  Passwd:
+  Host: 
+    - localhost:7000
+    - localhost:7001
+    - localhost:7002
+    - localhost:7003
+    - localhost:7004
+    - localhost:7005
+  Passwd: ""
+  PoolSize: 10 
+  PoolTimeout: 3
 
 MongoDB:
   Host:
   DataBase:
 
 Mysql:
-  Host:
+  Host: ""
+  Port: ""
+  User: ""
+  Passwd: ""
+  DbName: ""
+  MaxIdleConns: 10
+  MaxIdleTime: 30
+  MaxOpenConns: 100
+  MaxLifeTime: 60
 
 Consul:
   Host:
+
+ZapLog:
+  ErrLog: log/err.log
+  WarnLog: log/warn.log
+  InfoLog: log/info.log
+  Maxsize: 100
+  MaxAge: 15
+  MaxBackup: 30
+  Compress: true
+  Json: true

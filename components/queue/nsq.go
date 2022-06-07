@@ -1,7 +1,7 @@
 package queue
 
 import (
-	"defaultProject/config"
+	"defaultProject/components/config"
 
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"

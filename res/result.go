@@ -35,7 +35,7 @@ func (r *ApiResultWithData) R() {}
 
 func (r *ApiResult) R() {}
 
-func Result(code int, msg string, data ...interface{}) IResult {
+func result(code int, msg string, data ...interface{}) IResult {
 	if len(data) > 0 {
 		r := &ApiResultWithData{
 			ApiResult: ApiResult{
@@ -48,7 +48,7 @@ func Result(code int, msg string, data ...interface{}) IResult {
 	return r
 }
 
-func ResultOK(msg ...string) IResult {
+func resultOK(msg ...string) IResult {
 	var r *ApiResult
 	if len(msg) > 0 {
 		r = &ApiResult{
@@ -61,7 +61,7 @@ func ResultOK(msg ...string) IResult {
 	return r
 }
 
-func OK(msg string, data ...interface{}) IResult {
+func ok(msg string, data ...interface{}) IResult {
 	if len(data) > 0 {
 		r := &ApiResultWithData{
 			ApiResult: ApiResult{
@@ -74,18 +74,18 @@ func OK(msg string, data ...interface{}) IResult {
 	return r
 }
 
-func Err(msg string) IResult {
+func err(msg string) IResult {
 	return &ApiResult{Code: FAILED, Msg: msg}
 }
 
-func NotFound(msg string) IResult {
+func notFound(msg string) IResult {
 	return &ApiResult{Code: NOTFOUND, Msg: msg}
 }
 
-func ParamErr(msg string) IResult {
+func paramErr(msg string) IResult {
 	return &ApiResult{Code: PARAMETERERR, Msg: msg}
 }
 
-func Unauthrized(msg string) IResult {
+func unauthrized(msg string) IResult {
 	return &ApiResult{Code: UNAUTHORIZATION, Msg: msg}
 }

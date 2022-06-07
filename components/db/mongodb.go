@@ -2,7 +2,7 @@ package db
 
 import (
 	"context"
-	"defaultProject/config"
+	"defaultProject/components/config"
 	"time"
 
 	"github.com/pkg/errors"

@@ -1,8 +1,8 @@
 package httpsvc
 
 import (
-	"defaultProject/config"
-	"defaultProject/middleware"
+	"defaultProject/components/config"
+	"defaultProject/src/middleware"
 	"errors"
 	"fmt"
 	"os"
@@ -50,7 +50,7 @@ func NewGinConfig(port ...string) *GinConfig {
 
 func (g *GinConfig) SetRouter(routers ...GinRouter) *GinConfig {
 	if len(routers) <= 0 {
-		fmt.Errorf("%v", errors.New("No router have been loaded yet."))
+		fmt.Printf("%v\n", errors.New("No router have been loaded yet."))
 		os.Exit(1)
 	}
 	for _, router := range routers {
