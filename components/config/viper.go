@@ -14,7 +14,7 @@ import (
 
 // confKeyPrefix cache中的key的前缀
 // cache可能被其它地方引用，为了防止key重复，每个引用的模块默认加一个key的前缀
-const confKeyPrefix = "Monitor_Config_"
+const confKeyPrefix = "defaultProject_"
 
 // 由于viper包本身对于文件的变化事件有一个bug，相关事件会被回调两次，常年未彻底解决
 // 相关的issue清单：https://github.com/spf13/viper/issues?q=OnConfigChange
@@ -61,24 +61,12 @@ func (m *ViperConfig) loadDefaultValue() {
 }
 
 func (m *ViperConfig) Init() error {
-	// v := viper.New()
 	m.viper.AddConfigPath("config")
 	m.viper.SetConfigName(selectConfigName(nil))
 	m.viper.SetConfigType("yaml")
 	if err := m.viper.ReadInConfig(); err != nil {
 		return err
 	}
-	// Cfg = &ViperConfig{
-	// 	viper: v,
-	// }
-	// v := viper.New()
-	// v.AddConfigPath("config")
-	// v.SetConfigName(selectConfigName(nil))
-	// v.SetConfigType("yaml")
-	// if err := v.ReadInConfig(); err != nil {
-	// 	return err
-	// }
-	// Cfg.viper = v
 	m.loadDefaultValue()
 	return nil
 }
