@@ -19,9 +19,6 @@ clean:
 build:
 	- go mod tidy
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./release/defaultProject main.go
-	cp setup.sh release/
-	cp ./private_key.pem release/	
-	cp ./public_key.pem release/
 	cp Dockerfile release/
 	- mkdir release/config
 	cp config/*.yaml release/config/
@@ -29,9 +26,6 @@ build:
 build-arm:
 	- go mod tidy
 	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ./release/defaultProject main.go
-	cp setup.sh release/
-	cp ./private_key.pem release/
-	cp ./public_key.pem release/
 	cp Dockerfile-arm release/
 	- mkdir release/config
 	cp config/*.yaml release/config/.
