@@ -45,6 +45,12 @@ func Register(models ...IRegister) *GlobalRegister {
 	return model
 }
 
+// 追加注册
+func (g *GlobalRegister) AddRegister(models ...IRegister) *GlobalRegister {
+	g.servers = append(g.servers, models...)
+	return g
+}
+
 // 根据注册顺序，配置时注意引用优先级，初始化组件模块
 func (g *GlobalRegister) Init() *GlobalRegister {
 	initOnce.Do(func() {
